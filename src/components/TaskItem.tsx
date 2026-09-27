@@ -8,7 +8,8 @@ type TaskItemProps = {
   title: string;
   icon: ImageRequireSource;
   color: string;
-  tagColor: string;
+  subtitle: string;
+  progress: number;
   isCompleted: boolean;
   onPress: () => void;
 };
@@ -17,27 +18,52 @@ export default function TaskItem({
   title,
   icon,
   color,
-  tagColor,
+  subtitle,
+  progress,
   isCompleted,
   onPress,
 }: TaskItemProps) {
+  const progressPercentage = Math.max(0, Math.min(100, progress));
+  const progressColor = progressPercentage >= 100
+    ? '#388E3C'
+    : progressPercentage >= 80
+      ? '#A5D6A7'
+      : progressPercentage >= 25
+        ? '#FFE08A'
+        : '#F4B9B9';
+
   return (
     <Pressable
       accessibilityRole="checkbox"
       accessibilityState={{ checked: isCompleted }}
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.pressedRow]}>
-      <View style={[styles.iconBackground, { backgroundColor: color }]}>
-        <Image
-          source={icon}
-          style={styles.icon}
+      <View style={styles.taskContent}>
+        <View style={[styles.iconBackground, { backgroundColor: color }]}>
+          <Image
+            source={icon}
+            style={styles.icon}
+          />
+        </View>
+        <View style={styles.details}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
+        </View>
+        <View style={[styles.checkCircle, isCompleted && styles.checkedCircle]}>
+          {isCompleted && <Image source={icons.CHECK} style={styles.checkmark} />}
+        </View>
+      </View>
+      <View
+        accessibilityLabel={`Progress ${Math.round(progressPercentage)} percent`}
+        accessibilityRole="progressbar"
+        accessibilityValue={{ min: 0, max: 100, now: Math.round(progressPercentage) }}
+        style={styles.progressTrack}>
+        <View
+          style={[
+            styles.progressFill,
+            { backgroundColor: progressColor, width: `${progressPercentage}%` },
+          ]}
         />
-      </View>
-      <View style={styles.details}>
-        <Text style={[styles.title]}>{title}</Text>
-      </View>
-      <View style={[styles.checkCircle, isCompleted && styles.checkedCircle]}>
-        {isCompleted && <Image source={icons.CHECK} style={styles.checkmark} />}
       </View>
     </Pressable>
   );
@@ -45,14 +71,12 @@ export default function TaskItem({
 
 const styles = StyleSheet.create({
   row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    minHeight: 80,
+    justifyContent: 'center',
+    minHeight: 92,
     paddingHorizontal: 8,
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#EDE9EE',
+    paddingVertical: 10,
   },
-
+  taskContent: { alignItems: 'center', flexDirection: 'row', minHeight: 60 },
   pressedRow: { backgroundColor: COLORS.LIGHT_GREY },
   iconBackground: {
     alignItems: 'center',
@@ -62,18 +86,17 @@ const styles = StyleSheet.create({
     width: 50,
   },
   icon: { tintColor: '#FFFFFF', width: 30, height: 30 },
-  details: { flex: 1, paddingLeft: 28 },
+  details: { flex: 1, paddingLeft: 28, justifyContent: 'center' },
   title: { color: '#3F3940', fontSize: 18, fontWeight: '400' },
-  tag: {
-    alignSelf: 'flex-start',
-    borderRadius: 5,
-    color: '#A34D9A',
-    fontSize: 14,
-    marginTop: 7,
+  subtitle: { color: colors.muted, fontSize: 13, marginTop: 4 },
+  progressTrack: {
+    backgroundColor: '#EAE2E8',
+    borderRadius: 4,
+    height: 6,
+    marginTop: 9,
     overflow: 'hidden',
-    paddingHorizontal: 5,
-    paddingVertical: 2,
   },
+  progressFill: { borderRadius: 4, height: '100%' },
   checkCircle: {
     alignItems: 'center',
     backgroundColor: '#EDE9EE',
