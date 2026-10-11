@@ -5,6 +5,7 @@ import {
   Alert,
   FlatList,
   ImageRequireSource,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +20,7 @@ import TimeSettingModal from '../components/TimeSettingModal';
 import { icons } from '../constants/icons';
 import { DAILY_PRACTICE_RECORDS_STORAGE_KEY } from '../constants/storage';
 import { TYPOGRAPHY } from '../constants/typography';
+import { useTheme } from '../context/ThemeContext';
 import {
   createDailyPracticeRecord,
   DailyPracticeRecord,
@@ -69,6 +71,7 @@ function formatTimeValue(seconds: number): string {
 }
 
 export default function HomeScreen() {
+  const { isDark, theme, toggleTheme } = useTheme();
   const [isChantingModalVisible, setChantingModalVisible] = useState(false);
   const [activeTimePracticeId, setActiveTimePracticeId] = useState<TimedPracticeId | null>(null);
   const [records, setRecords] = useState<DailyPracticeRecord[]>([]);
@@ -209,15 +212,29 @@ export default function HomeScreen() {
     <View>
       {storageError && <Text style={styles.storageError}>{storageError}</Text>}
       <View style={styles.header}>
-        <Text style={[styles.title, TYPOGRAPHY.TITLE]}>
-          {getLocalDateKey(selectedDate) === getLocalDateKey(new Date())
-            ? 'Today'
-            : selectedDate.toLocaleDateString(undefined, {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-        </Text>
+        <View style={styles.headerRow}>
+          <Text style={[TYPOGRAPHY.TITLE, { color: theme.text }]}>
+            {getLocalDateKey(selectedDate) === getLocalDateKey(new Date())
+              ? 'Today'
+              : selectedDate.toLocaleDateString(undefined, {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} theme`}
+            onPress={toggleTheme}
+            style={[
+              styles.themeToggle,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+            ]}>
+            <Text style={[styles.themeToggleIcon, { color: theme.text }]}>
+              {isDark ? '☀' : '☾'}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -247,7 +264,7 @@ export default function HomeScreen() {
 
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
       {isLoadingRecords ? (
         <View style={styles.loading}>
           <ActivityIndicator color="#C72F5D" />
@@ -328,7 +345,16 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 24,
   },
-  title: { color: '#352F35' },
+  headerRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  themeToggle: {
+    alignItems: 'center',
+    borderRadius: 22,
+    borderWidth: 1,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  themeToggleIcon: { fontSize: 24, lineHeight: 28, textAlign: 'center' },
   dateList: { columnGap: DATE_CARD_GAP, paddingHorizontal: 0, paddingBottom: 28 },
   practiceList: { flex: 1 },
   practiceListContent: { paddingHorizontal: 0 },
